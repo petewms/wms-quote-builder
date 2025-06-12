@@ -33,7 +33,6 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
-      table-layout: fixed;
     }
     th, td {
       border: 1px solid #ccc;
@@ -43,9 +42,6 @@
     th {
       background: #005bbb;
       color: white;
-      position: sticky;
-      top: 0;
-      z-index: 1;
     }
     .btn {
       background: #ffc107;
@@ -64,7 +60,6 @@
       color: #005bbb;
       margin: 0;
     }
-    
   </style>
 </head>
 <body>
@@ -80,19 +75,19 @@
     <input type="date" id="quoteDate">
     <input type="text" id="search" placeholder="Search SOR items..." onkeyup="renderSORTable()">
 
-    <div style="max-height: 300px; overflow-y: auto; display: block; width: 100%;"><table id="sorTable" style="width: 100%; border-collapse: collapse;">
-        <thead style="position: sticky; top: 0; background: #005bbb; color: white; z-index: 2;">
-          <tr>
-            <th>Code</th>
-            <th>Description</th>
-            <th>Unit</th>
-            <th>Rate</th>
-            <th>Qty</th>
-            <th>Add</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table></div>
+    <table id="sorTable">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Description</th>
+          <th>Unit</th>
+          <th>Rate</th>
+          <th>Qty</th>
+          <th>Add</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
     <h3>Quote</h3>
     <table id="quoteTable">
@@ -196,48 +191,8 @@
       if (name) {
         localStorage.setItem("quote_" + name, JSON.stringify(data));
         alert("Quote saved as '" + name + "'");
-        populateSavedQuotes();
       } else {
         alert("Please enter a Quote Name before saving.");
-      }
-    }
-
-    function populateSavedQuotes() {
-      const select = document.getElementById("savedQuotes");
-      select.innerHTML = '<option value="">⬇️ Load saved quote...</option>';
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith("quote_")) {
-          const option = document.createElement("option");
-          option.value = key;
-          option.textContent = key.replace("quote_", "");
-          select.appendChild(option);
-        }
-      });
-    }
-
-    function loadSelectedQuote() {
-      const key = document.getElementById("savedQuotes").value;
-      if (!key) return;
-      const data = JSON.parse(localStorage.getItem(key));
-      const tbody = document.querySelector("#quoteTable tbody");
-      tbody.innerHTML = "";
-      data.forEach(item => {
-        addToQuote({
-          parentElement: {
-            parentElement: {
-              querySelector: () => ({ value: item.qty })
-            }
-          }
-        }, item.code, item.description, item.unit, item.rate);
-      });
-    }
-
-    function deleteSelectedQuote() {
-      const select = document.getElementById("savedQuotes");
-      const key = select.value;
-      if (key && confirm("Delete quote '" + key.replace("quote_", "") + "'?")) {
-        localStorage.removeItem(key);
-        populateSavedQuotes();
       }
     }
 
@@ -248,42 +203,12 @@
       const quoteDate = document.getElementById("quoteDate").value.trim();
 
       const table = document.getElementById("quoteTable");
-      const clonedTable = document.createElement("table");
-      clonedTable.border = "1";
-      const headers = ["Code", "Description", "Unit", "Qty", "Rate", "Total"];
-      const thead = document.createElement("thead");
-      const headRow = document.createElement("tr");
-      headers.forEach(h => {
-        const th = document.createElement("th");
-        th.textContent = h;
-        headRow.appendChild(th);
-      });
-      thead.appendChild(headRow);
-      clonedTable.appendChild(thead);
-      const tbody = document.createElement("tbody");
-      table.querySelectorAll("tbody tr").forEach(row => {
-        const cells = row.querySelectorAll("td");
-        const tr = document.createElement("tr");
-        for (let i = 0; i < 6; i++) {
-          const td = document.createElement("td");
-          if (i === 3) {
-            td.textContent = parseFloat(cells[i].querySelector("input").value).toFixed(2);
-          } else if (i === 4 || i === 5) {
-            td.textContent = '£' + cells[i].innerText.replace('£', '').trim();
-          } else {
-            td.textContent = cells[i].innerText;
-          }
-          tr.appendChild(td);
-        }
-        tbody.appendChild(tr);
-      });
-      clonedTable.appendChild(tbody);
+      const clonedTable = table.cloneNode(true);
       const rows = clonedTable.querySelectorAll("input");
       rows.forEach(input => {
         const td = document.createElement("td");
-        td.textContent = parseFloat(input.value).toFixed(2);
+        td.textContent = input.value;
         input.parentElement.replaceWith(td);
-      });
       });
 
       let html = `
@@ -302,9 +227,6 @@
       link.download = `${quoteName}.xls`;
       link.click();
     }
-
-    renderSORTable();
-    populateSavedQuotes();
   </script>
 </body>
 </html>
