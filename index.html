@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WMS Quote Builder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      background: white;
+      padding: 20px;
+      margin: auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    input, button, select {
+      padding: 10px;
+      margin-bottom: 10px;
+      font-size: 16px;
+      width: 100%;
+    }
+    .center-button {
+      display: block;
+      margin: 10px auto;
+      width: 300px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #005bbb;
+      color: white;
+    }
+    .btn {
+      background: #ffc107;
+      border: none;
+      cursor: pointer;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header img {
+      max-height: 80px;
+      margin-bottom: 10px;
+    }
+    header h1 {
+      color: #005bbb;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="WMS_1.jpg" alt="WMS Logo">
+      <h1>WMS Quote Builder</h1>
+    </header>
+
+    <input type="text" id="quoteName" placeholder="Quote Name">
+    <input type="text" id="clientName" placeholder="Client Name">
+    <input type="text" id="jobDescription" placeholder="Job Description">
+    <input type="date" id="quoteDate">
+    <input type="text" id="search" placeholder="Search SOR items..." onkeyup="renderSORTable()">
+
+    <table id="sorTable">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Description</th>
+          <th>Unit</th>
+          <th>Rate</th>
+          <th>Qty</th>
+          <th>Add</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h3>Quote</h3>
+    <table id="quoteTable">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Description</th>
+          <th>Unit</th>
+          <th>Qty</th>
+          <th>Rate</th>
+          <th>Total</th>
+          <th>Remove</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <h3 style="text-align:right">Total: £<span id="grandTotal">0.00</span></h3>
+
+    <button class="center-button" onclick="saveToLocal()">💾 Save Quote (to browser)</button>
+    <select id="savedQuotes" class="center-button" onchange="loadSelectedQuote()">
+      <option value="">⬇️ Load saved quote...</option>
+    </select>
+    <button class="center-button" onclick="deleteSelectedQuote()">🗑 Delete Selected</button>
+    <button class="center-button" onclick="exportToExcel()">📤 Export to Excel</button>
+  </div>
+
+  <script src="sor_data.js"></script>
+  <script>
+    function renderSORTable() {
+      const search = document.getElementById("search").value.toLowerCase();
+      const tbody = document.querySelector("#sorTable tbody");
+      tbody.innerHTML = "";
+      sorItems.forEach(item => {
+        if (item.description.toLowerCase().includes(search) || item.code.includes(search)) {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${item.code}</td>
+            <td>${item.description}</td>
+            <td>${item.unit}</td>
+            <td>£${item.rate.toFixed(4)}</td>
+            <td><input type='number' value='1' min='1' style='width:60px'></td>
+            <td><button class='btn' onclick='addToQuote(this, "${item.code}", "${item.description}", "${item.unit}", ${item.rate})'>Add</button></td>
+          `;
+          tbody.appendChild(row);
+        }
+      });
+    }
+
+    function addToQuote(button, code, description, unit, rate) {
+      const qtyInput = button.parentElement.parentElement.querySelector("input[type='number']");
+      const qty = parseFloat(qtyInput.value);
+      const total = (qty * rate).toFixed(2);
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${code}</td>
+        <td>${description}</td>
+        <td>${unit}</td>
+        <td><input type='number' value='${qty}' min='1' onchange='updateTotal(this, ${rate})' style='width:60px'></td>
+        <td>£${rate.toFixed(4)}</td>
+        <td class='total'>£${total}</td>
+        <td><button class='btn' onclick='removeRow(this)'>Remove</button></td>
+      `;
+      document.querySelector("#quoteTable tbody").appendChild(row);
+      updateGrandTotal();
+    }
+
+    function updateTotal(input, rate) {
+      const qty = parseFloat(input.value);
+      const totalCell = input.parentElement.parentElement.querySelector(".total");
+      totalCell.textContent = `£${(qty * rate).toFixed(2)}`;
+      updateGrandTotal();
+    }
+
+    function removeRow(button) {
+      button.closest("tr").remove();
+      updateGrandTotal();
+    }
+
+    function updateGrandTotal() {
+      let total = 0;
+      document.querySelectorAll("#quoteTable .total").forEach(cell => {
+        total += parseFloat(cell.textContent.replace('£', '')) || 0;
+      });
+      document.getElementById("grandTotal").textContent = total.toFixed(2);
+    }
+
+    function saveToLocal() {
+      const rows = Array.from(document.querySelectorAll("#quoteTable tbody tr"));
+      const data = rows.map(row => {
+        const cells = row.querySelectorAll("td");
+        return {
+          code: cells[0].innerText,
+          description: cells[1].innerText,
+          unit: cells[2].innerText,
+          qty: cells[3].querySelector("input").value,
+          rate: parseFloat(cells[4].innerText.replace('£',''))
+        };
+      });
+      const name = document.getElementById("quoteName").value.trim();
+      if (name) {
+        localStorage.setItem("quote_" + name, JSON.stringify(data));
+        alert("Quote saved as '" + name + "'");
+      } else {
+        alert("Please enter a Quote Name before saving.");
+      }
+    }
+
+    function exportToExcel() {
+      const quoteName = document.getElementById("quoteName").value.trim() || "WMS_Quote";
+      const clientName = document.getElementById("clientName").value.trim();
+      const jobDescription = document.getElementById("jobDescription").value.trim();
+      const quoteDate = document.getElementById("quoteDate").value.trim();
+
+      const table = document.getElementById("quoteTable");
+      const clonedTable = table.cloneNode(true);
+      const rows = clonedTable.querySelectorAll("input");
+      rows.forEach(input => {
+        const td = document.createElement("td");
+        td.textContent = input.value;
+        input.parentElement.replaceWith(td);
+      });
+
+      let html = `
+        <table border="1">
+          <tr><th colspan="7">${quoteName}</th></tr>
+          <tr><td colspan="7"><strong>Client:</strong> ${clientName}</td></tr>
+          <tr><td colspan="7"><strong>Description:</strong> ${jobDescription}</td></tr>
+          <tr><td colspan="7"><strong>Date:</strong> ${quoteDate}</td></tr>
+          ${clonedTable.innerHTML}
+        </table>
+      `;
+
+      const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${quoteName}.xls`;
+      link.click();
+    }
+  </script>
+</body>
+</html>
