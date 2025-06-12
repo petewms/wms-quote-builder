@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>WMS Quote Builder</title>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f9f9f9;
+    margin: 0; padding: 20px;
+  }
+  header {
+    text-align: center;
+    background: #0066cc;
+    padding: 10px 0;
+    color: white;
+  }
+  header img {
+    max-height: 60px;
+  }
+  .container {
+    max-width: 900px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+  }
+  input[type="text"], input[type="number"], input[type="date"] {
+    padding: 8px;
+    font-size: 16px;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  button {
+    background: #f2c100;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  th, td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: left;
+  }
+  th {
+    background: #0066cc;
+    color: white;
+  }
+</style>
+</head>
+<body>
+<header>
+  <img alt="WMS Logo" src="WMS_1.jpg" style="max-height: 120px; width: auto; margin: 10px auto; display: block;"/>
+  <h1>WMS Quote Builder</h1>
+</header>
+<div class="container">
+  <input id="quoteName" placeholder="Quote Name" type="text"/>
+  <input id="clientName" placeholder="Client Name" type="text"/>
+  <input id="jobDescription" placeholder="Job Description" type="text"/>
+  <input id="quoteDate" type="date"/>
+
+  <h3>Quote</h3>
+  <table id="quoteTable">
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Description</th>
+        <th>Unit</th>
+        <th>Qty</th>
+        <th>Rate</th>
+        <th>Total</th>
+        <th>Remove</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div style="text-align:right; font-weight:bold;">Total: £<span id="grandTotal">0.00</span></div>
+</div>
+<script>
+function addToQuote(code, description, unit, rate) {
+  const quoteTable = document.getElementById("quoteTable").getElementsByTagName('tbody')[0];
+  const row = quoteTable.insertRow();
+  const qty = 1;
+  const total = (qty * parseFloat(rate)).toFixed(2);
+
+  row.innerHTML = `
+    <td>${code}</td>
+    <td>${description}</td>
+    <td>${unit}</td>
+    <td><input type="number" value="${qty}" onchange="updateTotal(this)"></td>
+    <td>£${parseFloat(rate).toFixed(4)}</td>
+    <td class="total">£${total}</td>
+    <td><button onclick="removeRow(this)">❌</button></td>
+  `;
+
+  updateGrandTotal();
+}
+
+function updateTotal(input) {
+  const row = input.closest("tr");
+  const rateCell = row.cells[4];
+  const totalCell = row.cells[5];
+  const rate = parseFloat(rateCell.textContent.replace('£',''));
+  const qty = parseFloat(input.value);
+  const total = (rate * qty).toFixed(2);
+  totalCell.textContent = `£${total}`;
+  updateGrandTotal();
+}
+
+function removeRow(button) {
+  const row = button.closest("tr");
+  row.remove();
+  updateGrandTotal();
+}
+
+function updateGrandTotal() {
+  const totalCells = document.querySelectorAll("#quoteTable .total");
+  let grandTotal = 0;
+  totalCells.forEach(cell => {
+    const value = parseFloat(cell.textContent.replace('£','')) || 0;
+    grandTotal += value;
+  });
+  document.getElementById("grandTotal").textContent = grandTotal.toFixed(2);
+}
+</script>
+</body>
+</html>
