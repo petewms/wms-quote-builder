@@ -1,19 +1,20 @@
 
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WMS Quote Builder</title>
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WMS Quote Builder</title>
+<style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background: #1e1e1e;
       padding: 20px;
     }
     .container {
       max-width: 1000px;
-      background: white;
+      background: #2b2b2b;
       padding: 20px;
       margin: auto;
       border-radius: 8px;
@@ -61,65 +62,103 @@
       position: sticky;
       top: 0;
       background: #005bbb;
-      color: white;
+      color: #ffffff;
       z-index: 1;
     }
-  </style>
+  
+    .btn, .center-button {
+      background-color: #ffd000;
+      color: #000;
+      border: none;
+      font-weight: bold;
+    }
+    .btn:hover, .center-button:hover {
+      background-color: #ffcc00;
+    }
+    
+    .btn, .center-button {
+      background-color: #ffd000;
+      color: #000;
+      border: none;
+      font-weight: bold;
+      border-radius: 8px;
+      padding: 12px 20px;
+      width: 300px;
+      display: block;
+      margin: 10px auto;
+      text-align: center;
+    }
+    .btn:hover, .center-button:hover {
+      background-color: #ffcc00;
+    }
+    
+    select.center-button {
+      height: 48px;
+      line-height: 1.2;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      text-align: center;
+      padding: 10px 20px;
+      box-sizing: border-box;
+    }
+    
+    select.center-button {
+      text-align-last: center;
+      -moz-text-align-last: center;
+      -ms-text-align-last: center;
+    }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>WMS Quote Builder</h1>
-    </header>
-
-    <input type="text" id="quoteName" placeholder="Quote Name">
-    <input type="text" id="clientName" placeholder="Client Name">
-    <input type="text" id="jobDescription" placeholder="Job Description">
-    <input type="date" id="quoteDate">
-    <input type="text" id="search" placeholder="Search SOR items..." onkeyup="renderSORTable()">
-
-    <div class="scroll-wrapper">
-      <table id="sorTable">
-        <thead>
-          <tr>
-            <th>Code</th>
-            <th>Description</th>
-            <th>Unit</th>
-            <th>Rate</th>
-            <th>Qty</th>
-            <th>Add</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <h3>Quote</h3>
-    <table id="quoteTable">
-      <thead>
-        <tr>
-          <th>Code</th>
-          <th>Description</th>
-          <th>Unit</th>
-          <th>Qty</th>
-          <th>Rate</th>
-          <th>Total</th>
-          <th>Remove</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <h3 style="text-align:right">Total: £<span id="grandTotal">0.00</span></h3>
-
-    <button class="center-button" onclick="saveToLocal()">💾 Save Quote (to browser)</button>
-    <select id="savedQuotes" class="center-button" onchange="loadSelectedQuote()">
-      <option value="">⬇️ Load saved quote...</option>
-    </select>
-    <button class="center-button" onclick="deleteSelectedQuote()">🗑 Delete Selected</button>
-    <button class="center-button" onclick="exportToExcel()">📤 Export to Excel</button>
-  </div>
-
-  <script>
+<div class="container">
+<header><img alt="WMS Logo" src="WMS_Logo.jpg" style="max-height: 80px; margin-bottom: 10px;"/>
+<h1>WMS Quote Builder</h1>
+</header>
+<input id="quoteName" placeholder="Quote Name" type="text"/>
+<input id="clientName" placeholder="Client Name" type="text"/>
+<input id="jobDescription" placeholder="Job Description" type="text"/>
+<input id="quoteDate" type="date"/>
+<input id="search" onkeyup="renderSORTable()" placeholder="Search SOR items..." type="text"/>
+<div class="scroll-wrapper">
+<table id="sorTable">
+<thead>
+<tr>
+<th>Code</th>
+<th>Description</th>
+<th>Unit</th>
+<th>Rate</th>
+<th>Qty</th>
+<th>Add</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+<h3>Quote</h3>
+<table id="quoteTable">
+<thead>
+<tr>
+<th>Code</th>
+<th>Description</th>
+<th>Unit</th>
+<th>Qty</th>
+<th>Rate</th>
+<th>Total</th>
+<th>Remove</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+<h3 style="text-align:right">Total: £<span id="grandTotal">0.00</span></h3>
+<button class="center-button" onclick="saveToLocal()">💾 Save Quote (to browser)</button>
+<select class="center-button" id="savedQuotes" onchange="loadSelectedQuote()">
+<option value="">⬇️ Load saved quote...</option>
+</select>
+<button class="center-button" onclick="deleteSelectedQuote()">🗑 Delete Selected</button>
+<button class="center-button" onclick="exportToExcel()">📤 Export to Excel</button>
+</div>
+<script>
     const sorItems = [
   { code: "1101", description: "Kerb:Excavate, remove spoil, later backfill level, compact bottoms, supply and lay 127x254mm pcc kerb, straight or curved, including concrete bed and haunch, pointing, formwork make good.", unit: "LM", rate: 45.45 },
   { code: "1103", description: "Kerb:Renew pcc kerb, straight or curved, take up existing including haunching, remove spoil, clean bed, supply and lay new 127x254mm pcc kerb haunch pointing, formwork and make good to finishes.", unit: "LM", rate: 32.84 },
