@@ -147,7 +147,7 @@
 <input id="quoteName" placeholder="Quote Name" type="text"/>
 <input id="clientName" placeholder="Client Name" type="text"/>
 <input id="jobDescription" placeholder="Job Description" type="text"/>
-<input id="quoteDate" type="date"/>
+<label for="quoteDate" style="color: white; display: block; margin-bottom: 5px;">Quote Date</label><input id="quoteDate" style="width: 100%; text-align: left; height: 48px; padding: 10px; font-size: 16px; direction: ltr;" type="date"/>
 <input id="search" onkeyup="renderSORTable()" placeholder="Search SOR items..." type="text"/>
 <div class="scroll-wrapper">
 <table id="sorTable">
@@ -164,7 +164,7 @@
 <tbody></tbody>
 </table>
 </div>
-<h3>Quote</h3>
+<h3 style="color: white;">Quote</h3>
 <table id="quoteTable">
 <thead>
 <tr>
@@ -179,7 +179,7 @@
 </thead>
 <tbody></tbody>
 </table>
-<h3 style="text-align:right">Total: £<span id="grandTotal">0.00</span></h3>
+<h3 style="text-align: right; color: white;">Total: £<span id="grandTotal">0.00</span></h3>
 <button class="center-button" onclick="saveToLocal()">💾 Save Quote (to browser)</button>
 <select class="center-button" id="savedQuotes" onchange="loadSelectedQuote()">
 <option value="">⬇️ Load saved quote...</option>
